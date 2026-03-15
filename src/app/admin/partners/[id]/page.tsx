@@ -616,7 +616,7 @@ export default function PartnerDetailPage() {
                 </Table>
               ) : (
                 <div className="flex flex-col justify-center items-center py-12 text-center">
-                  <IndianRupee className="mb-3 w-10 h-10 text-muted-foreground/40" />
+                  <Wallet className="mb-3 w-10 h-10 text-muted-foreground/40" />
                   <p className="font-medium text-muted-foreground text-sm">No commissions yet</p>
                 </div>
               )}

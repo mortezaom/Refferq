@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getCurrencySymbol } from '@/lib/currency';
 
 
 export async function GET(request: NextRequest) {
@@ -45,8 +46,11 @@ export async function GET(request: NextRequest) {
       partnerGroups.map(pg => [pg.id, { name: pg.name, rate: pg.commissionRate }])
     );
 
+    const currencySymbol = await getCurrencySymbol();
+
     return NextResponse.json({
       success: true,
+      currencySymbol,
       referrals: referrals.map(referral => {
         const metadata = referral.metadata as any;
         const affiliate = referral.affiliate as any;

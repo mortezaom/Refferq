@@ -32,7 +32,6 @@ import {
 } from '@/components/ui/dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
-  IndianRupee,
   MousePointerClick,
   Target,
   Users,

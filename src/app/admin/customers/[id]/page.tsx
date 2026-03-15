@@ -33,7 +33,6 @@ import {
   Mail,
   Phone,
   Building2,
-  IndianRupee,
   User,
   Calendar,
   CheckCircle2,
@@ -46,6 +45,7 @@ import {
   Shield,
   Loader2,
 } from 'lucide-react';
+import { DEFAULT_CURRENCY_SYMBOL, formatCurrencyValue } from '@/lib/currency-format';
 
 interface Referral {
   id: string;
@@ -85,6 +85,7 @@ export default function CustomerDetailPage() {
   const [saved, setSaved] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [currencySymbol, setCurrencySymbol] = useState(DEFAULT_CURRENCY_SYMBOL);
 
   // Editable fields
   const [editName, setEditName] = useState('');
@@ -100,6 +101,7 @@ export default function CustomerDetailPage() {
       const res = await fetch('/api/admin/referrals');
       const data = await res.json();
       if (data.success) {
+        setCurrencySymbol(data.currencySymbol || DEFAULT_CURRENCY_SYMBOL);
         const found = data.referrals.find((r: Referral) => r.id === id);
         if (found) {
           setReferral(found);
@@ -175,11 +177,11 @@ export default function CustomerDetailPage() {
     return (
       <div className="space-y-6">
         <div className="flex items-center gap-4">
-          <Skeleton className="h-9 w-9" />
-          <Skeleton className="h-8 w-48" />
+          <Skeleton className="w-9 h-9" />
+          <Skeleton className="w-48 h-8" />
         </div>
-        <div className="grid gap-6 md:grid-cols-3">
-          <Skeleton className="h-[400px] md:col-span-2" />
+        <div className="gap-6 grid md:grid-cols-3">
+          <Skeleton className="md:col-span-2 h-[400px]" />
           <Skeleton className="h-[400px]" />
         </div>
       </div>
@@ -190,13 +192,13 @@ export default function CustomerDetailPage() {
     return (
       <div className="space-y-6">
         <Button variant="ghost" onClick={() => router.push('/admin/customers')}>
-          <ArrowLeft className="mr-2 h-4 w-4" />
+          <ArrowLeft className="mr-2 w-4 h-4" />
           Back to Customers
         </Button>
-        <div className="flex flex-col items-center justify-center py-20 text-center">
-          <User className="h-12 w-12 text-muted-foreground/50" />
-          <h3 className="mt-4 text-lg font-semibold">Customer not found</h3>
-          <p className="text-sm text-muted-foreground">This referral lead may have been deleted</p>
+        <div className="flex flex-col justify-center items-center py-20 text-center">
+          <User className="w-12 h-12 text-muted-foreground/50" />
+          <h3 className="mt-4 font-semibold text-lg">Customer not found</h3>
+          <p className="text-muted-foreground text-sm">This referral lead may have been deleted</p>
         </div>
       </div>
     );
@@ -205,35 +207,36 @@ export default function CustomerDetailPage() {
   const cfg = statusConfig[referral.status] || statusConfig.PENDING;
   const StatusIcon = cfg.icon;
   const estimatedCommission = Math.round(referral.estimatedValue * referral.affiliate.commissionRate);
+  const formatCurrency = (amount: number) => formatCurrencyValue(amount, currencySymbol, 'en-IN', 0, 2);
 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex justify-between items-center">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={() => router.push('/admin/customers')}>
-            <ArrowLeft className="h-4 w-4" />
+            <ArrowLeft className="w-4 h-4" />
           </Button>
           <div className="flex items-center gap-3">
-            <Avatar className="h-10 w-10">
+            <Avatar className="w-10 h-10">
               <AvatarFallback className="bg-primary/10 text-lg">
                 {referral.leadName?.charAt(0).toUpperCase()}
               </AvatarFallback>
             </Avatar>
             <div>
-              <h1 className="text-2xl font-bold tracking-tight">{referral.leadName}</h1>
-              <p className="text-sm text-muted-foreground">{referral.leadEmail}</p>
+              <h1 className="font-bold text-2xl tracking-tight">{referral.leadName}</h1>
+              <p className="text-muted-foreground text-sm">{referral.leadEmail}</p>
             </div>
           </div>
           <Badge variant={cfg.variant} className="ml-2">
-            <StatusIcon className="mr-1 h-3 w-3" />
+            <StatusIcon className="mr-1 w-3 h-3" />
             {cfg.label}
           </Badge>
         </div>
         <AlertDialog>
           <AlertDialogTrigger asChild>
             <Button variant="destructive" size="sm">
-              <Trash2 className="mr-2 h-4 w-4" />
+              <Trash2 className="mr-2 w-4 h-4" />
               Delete
             </Button>
           </AlertDialogTrigger>
@@ -249,7 +252,7 @@ export default function CustomerDetailPage() {
               <AlertDialogCancel>Cancel</AlertDialogCancel>
               <AlertDialogAction
                 onClick={handleDelete}
-                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
                 disabled={deleting}
               >
                 {deleting ? 'Deleting...' : 'Delete'}
@@ -259,16 +262,16 @@ export default function CustomerDetailPage() {
         </AlertDialog>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-3">
+      <div className="gap-6 grid md:grid-cols-3">
         {/* Left Column - Details & Edit */}
         <div className="space-y-6 md:col-span-2">
           {/* Lead Details Card */}
           <Card>
             <CardHeader>
-              <div className="flex items-center justify-between">
+              <div className="flex justify-between items-center">
                 <div>
                   <CardTitle className="flex items-center gap-2">
-                    <User className="h-5 w-5" />
+                    <User className="w-5 h-5" />
                     Lead Details
                   </CardTitle>
                   <CardDescription>View and edit customer information</CardDescription>
@@ -276,12 +279,12 @@ export default function CustomerDetailPage() {
                 <Button onClick={handleSave} disabled={saving} size="sm">
                   {saved ? (
                     <>
-                      <CheckCircle2 className="mr-2 h-4 w-4 text-green-500" />
+                      <CheckCircle2 className="mr-2 w-4 h-4 text-green-500" />
                       Saved
                     </>
                   ) : (
                     <>
-                      <Save className="mr-2 h-4 w-4" />
+                      <Save className="mr-2 w-4 h-4" />
                       {saving ? 'Saving...' : 'Save'}
                     </>
                   )}
@@ -289,8 +292,8 @@ export default function CustomerDetailPage() {
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="grid gap-2">
+              <div className="gap-4 grid md:grid-cols-2">
+                <div className="gap-2 grid">
                   <Label htmlFor="leadName">Full Name</Label>
                   <Input
                     id="leadName"
@@ -298,10 +301,10 @@ export default function CustomerDetailPage() {
                     onChange={(e) => setEditName(e.target.value)}
                   />
                 </div>
-                <div className="grid gap-2">
+                <div className="gap-2 grid">
                   <Label htmlFor="leadEmail">Email Address</Label>
                   <div className="relative">
-                    <Mail className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Mail className="top-2.5 left-3 absolute w-4 h-4 text-muted-foreground" />
                     <Input
                       id="leadEmail"
                       type="email"
@@ -312,26 +315,26 @@ export default function CustomerDetailPage() {
                   </div>
                 </div>
               </div>
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="grid gap-2">
+              <div className="gap-4 grid md:grid-cols-2">
+                <div className="gap-2 grid">
                   <Label>Phone</Label>
                   <div className="relative">
-                    <Phone className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Phone className="top-2.5 left-3 absolute w-4 h-4 text-muted-foreground" />
                     <Input className="pl-9" value={referral.leadPhone || '—'} readOnly disabled />
                   </div>
                 </div>
-                <div className="grid gap-2">
+                <div className="gap-2 grid">
                   <Label>Company</Label>
                   <div className="relative">
-                    <Building2 className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Building2 className="top-2.5 left-3 absolute w-4 h-4 text-muted-foreground" />
                     <Input className="pl-9" value={referral.company || '—'} readOnly disabled />
                   </div>
                 </div>
               </div>
               {referral.notes && (
-                <div className="grid gap-2">
+                <div className="gap-2 grid">
                   <Label>Notes</Label>
-                  <div className="rounded-md border bg-muted/50 p-3 text-sm">{referral.notes}</div>
+                  <div className="bg-muted/50 p-3 border rounded-md text-sm">{referral.notes}</div>
                 </div>
               )}
             </CardContent>
@@ -342,13 +345,13 @@ export default function CustomerDetailPage() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Shield className="h-5 w-5" />
+                  <Shield className="w-5 h-5" />
                   Review Lead
                 </CardTitle>
                 <CardDescription>Approve or reject this referral lead</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid gap-2">
+                <div className="gap-2 grid">
                   <Label htmlFor="reviewNotes">Review Notes (optional)</Label>
                   <Textarea
                     id="reviewNotes"
@@ -364,9 +367,9 @@ export default function CustomerDetailPage() {
                     disabled={actionLoading}
                   >
                     {actionLoading ? (
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      <Loader2 className="mr-2 w-4 h-4 animate-spin" />
                     ) : (
-                      <CheckCircle2 className="mr-2 h-4 w-4" />
+                      <CheckCircle2 className="mr-2 w-4 h-4" />
                     )}
                     Approve Lead
                   </Button>
@@ -376,9 +379,9 @@ export default function CustomerDetailPage() {
                     disabled={actionLoading}
                   >
                     {actionLoading ? (
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      <Loader2 className="mr-2 w-4 h-4 animate-spin" />
                     ) : (
-                      <XCircle className="mr-2 h-4 w-4" />
+                      <XCircle className="mr-2 w-4 h-4" />
                     )}
                     Reject Lead
                   </Button>
@@ -393,27 +396,21 @@ export default function CustomerDetailPage() {
           {/* Value Card */}
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium">Financial Summary</CardTitle>
+              <CardTitle className="font-medium text-sm">Financial Summary</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Estimated Value</span>
-                <span className="flex items-center gap-1 font-semibold">
-                  <IndianRupee className="h-3.5 w-3.5" />
-                  {referral.estimatedValue.toLocaleString('en-IN')}
-                </span>
+              <div className="flex justify-between items-center">
+                <span className="text-muted-foreground text-sm">Estimated Value</span>
+                <span className="font-semibold">{formatCurrency(referral.estimatedValue)}</span>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Commission Rate</span>
+              <div className="flex justify-between items-center">
+                <span className="text-muted-foreground text-sm">Commission Rate</span>
                 <span className="font-semibold">{(referral.affiliate.commissionRate * 100).toFixed(0)}%</span>
               </div>
               <Separator />
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">Est. Commission</span>
-                <span className="flex items-center gap-1 text-lg font-bold text-primary">
-                  <IndianRupee className="h-4 w-4" />
-                  {estimatedCommission.toLocaleString('en-IN')}
-                </span>
+              <div className="flex justify-between items-center">
+                <span className="font-medium text-sm">Est. Commission</span>
+                <span className="font-bold text-primary text-lg">{formatCurrency(estimatedCommission)}</span>
               </div>
             </CardContent>
           </Card>
@@ -421,28 +418,28 @@ export default function CustomerDetailPage() {
           {/* Referring Partner Card */}
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <Link2 className="h-4 w-4" />
+              <CardTitle className="flex items-center gap-2 font-medium text-sm">
+                <Link2 className="w-4 h-4" />
                 Referring Partner
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="flex items-center gap-3">
-                <Avatar className="h-9 w-9">
-                  <AvatarFallback className="text-xs bg-blue-100 text-blue-700">
+                <Avatar className="w-9 h-9">
+                  <AvatarFallback className="bg-blue-100 text-blue-700 text-xs">
                     {referral.affiliate.name?.charAt(0).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
                 <div>
-                  <p className="text-sm font-medium">{referral.affiliate.name}</p>
-                  <p className="text-xs text-muted-foreground">{referral.affiliate.email}</p>
+                  <p className="font-medium text-sm">{referral.affiliate.name}</p>
+                  <p className="text-muted-foreground text-xs">{referral.affiliate.email}</p>
                 </div>
               </div>
               <Separator />
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Referral Code</span>
-                  <code className="rounded bg-muted px-1.5 py-0.5 text-xs font-mono">
+                  <code className="bg-muted px-1.5 py-0.5 rounded font-mono text-xs">
                     {referral.affiliate.referralCode}
                   </code>
                 </div>
@@ -457,20 +454,20 @@ export default function CustomerDetailPage() {
           {/* Timeline Card */}
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <Calendar className="h-4 w-4" />
+              <CardTitle className="flex items-center gap-2 font-medium text-sm">
+                <Calendar className="w-4 h-4" />
                 Timeline
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
                 <div className="flex items-start gap-3">
-                  <div className="mt-0.5 rounded-full bg-blue-100 p-1">
-                    <FileText className="h-3 w-3 text-blue-600" />
+                  <div className="bg-blue-100 mt-0.5 p-1 rounded-full">
+                    <FileText className="w-3 h-3 text-blue-600" />
                   </div>
                   <div>
-                    <p className="text-sm font-medium">Lead Submitted</p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="font-medium text-sm">Lead Submitted</p>
+                    <p className="text-muted-foreground text-xs">
                       {new Date(referral.createdAt).toLocaleDateString('en-IN', {
                         day: 'numeric',
                         month: 'long',
@@ -501,14 +498,14 @@ export default function CustomerDetailPage() {
                     }`} />
                   </div>
                   <div>
-                    <p className="text-sm font-medium">
+                    <p className="font-medium text-sm">
                       {referral.status === 'APPROVED'
                         ? 'Approved'
                         : referral.status === 'REJECTED'
                           ? 'Rejected'
                           : 'Awaiting Review'}
                     </p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-muted-foreground text-xs">
                       {referral.status === 'PENDING'
                         ? 'Needs admin review'
                         : 'Decision recorded'}
